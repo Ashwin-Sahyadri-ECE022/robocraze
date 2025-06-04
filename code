@@ -1,0 +1,69 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// OLED Display setup
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+// Pin definitions
+const int noiseSensorPin = A0;
+const int redLEDPin = 8;
+const int greenLEDPin = 7;
+const int buzzerPin = 9;
+
+// Threshold (adjust as needed)
+const int noiseThreshold = 500;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Initialize pins
+  pinMode(redLEDPin, OUTPUT);
+  pinMode(greenLEDPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
+
+  // OLED Display initialization
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    // Display not found
+    while (true);
+  }
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(0, 0);
+  display.println("Noise Monitoring");
+  display.display();
+  delay(1000);
+}
+
+void loop() {
+  int noiseValue = analogRead(noiseSensorPin);
+
+  // Display value on OLED
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println("Noise Level:");
+  display.setTextSize(2);
+  display.setCursor(0, 20);
+  display.print(noiseValue);
+  display.display();
+
+  // Send to Bluetooth
+  Serial.println(noiseValue);
+
+  // Alert system
+  if (noiseValue > noiseThreshold) {
+    digitalWrite(redLEDPin, HIGH);
+    digitalWrite(greenLEDPin, LOW);
+    digitalWrite(buzzerPin, HIGH);
+  } else {
+    digitalWrite(redLEDPin, LOW);
+    digitalWrite(greenLEDPin, HIGH);
+    digitalWrite(buzzerPin, LOW);
+  }
+
+  delay(500); // Adjust refresh rate
+}
