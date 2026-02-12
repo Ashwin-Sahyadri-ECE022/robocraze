@@ -1,4 +1,5 @@
-# robocraze project
+# Noise detection device for factory workers
+We will be going through the setup and woeking of a noise detection device which can be used by factory workers
 
 ## **Introduction**
 
