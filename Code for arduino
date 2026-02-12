@@ -1,0 +1,60 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+const int soundPin = 34;
+
+void setup() {
+  Serial.begin(115200);
+  analogReadResolution(12);
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    while (true);
+  }
+
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(SSD1306_WHITE);
+}
+
+void loop() {
+  int peak = 0;
+  int minVal = 4095;
+
+  for (int i = 0; i < 100; i++) {
+    int val = analogRead(soundPin);
+    if (val > peak) peak = val;
+    if (val < minVal) minVal = val;
+    delayMicroseconds(300);
+  }
+
+  int range = peak - minVal;
+
+  // Remove noise floor (dead zone below ~10)
+  if (range < 10) range = 0;
+
+  // Convert to dB with gentle scaling
+  float dB = range * 0.2 + 30;
+  dB = constrain(dB, 30, 100);
+
+  // Optional: round to nearest 0.5 for stability
+  dB = round(dB * 2) / 2.0;
+
+  Serial.print("Range: ");
+  Serial.print(range);
+  Serial.print(" | dB: ");
+  Serial.println(dB);
+
+  // Display current dB
+  display.clearDisplay();
+  display.setCursor(0, 20);
+  display.print(dB, 1); // show 1 decimal place
+  display.print(" dB");
+  display.display();
+
+  delay(100);qa
+}
